@@ -36,17 +36,28 @@ if uploaded_file is not None:
         if st.button("Start Transcription"):
             with st.spinner("Transcribing..."):
                 try:
+                    # Warn if user chooses large models on CPU
+                    if model_size in ("medium", "large"):
+                        st.warning("Selected model is large and may run out of memory or be very slow on a CPU-based VM. Consider using 'tiny' or 'small'.")
+
                     # Prefer faster-whisper for better CPU performance when available
                     try:
                         from faster_whisper import WhisperModel
-                        model = WhisperModel(model_size, device="cpu", compute_type="int8_float16")
+                        device = "cpu"
+                        # Use an int8 compute type for CPU to reduce memory usage
+                        compute_type = "int8"
+                        model = WhisperModel(model_size, device=device, compute_type=compute_type)
                         segments, info = model.transcribe(temp_path)
                         text = "".join(seg.text for seg in segments)
-                    except Exception:
-                        # Fallback to OpenAI's whisper if faster-whisper is not installed
-                        model = whisper.load_model(model_size)
-                        result = model.transcribe(temp_path)
-                        text = result.get("text", "")
+                    except Exception as fw_e:
+                        # Fallback to OpenAI's whisper if faster-whisper is not installed or fails
+                        try:
+                            model = whisper.load_model(model_size)
+                            result = model.transcribe(temp_path)
+                            text = result.get("text", "")
+                        except Exception as w_e:
+                            # Raise the original faster-whisper error if present, else whisper error
+                            raise fw_e if fw_e else w_e
 
                     st.success("Transcription completed!")
                     st.text_area("📝 Transcription Result", value=text, height=300)
