@@ -67,7 +67,7 @@ After=network.target
 User=azureuser
 WorkingDirectory=/home/azureuser/whisper_app
 Environment="PATH=/home/azureuser/whisper_app/venv/bin"
-ExecStart=/home/azureuser/whisper_app/venv/bin/streamlit run /home/azureuser/whisper_app/whisper_app.py --server.address 127.0.0.1 --server.port 8501 --server.enableCORS false
+ExecStart=/home/azureuser/whisper_app/venv/bin/streamlit run /home/azureuser/whisper_app/whisper_app.py --server.address 127.0.0.1 --server.port 8501 --server.enableCORS false --server.enableXsrfProtection false
 Restart=always
 RestartSec=5
 
@@ -88,11 +88,12 @@ server {
     location / {
         proxy_pass http://127.0.0.1:8501;
         proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection $connection_upgrade;
+        proxy_set_header Connection "upgrade";
     }
 }
 EOF

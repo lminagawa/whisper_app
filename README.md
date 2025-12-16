@@ -88,6 +88,11 @@ Notes:
 - For the Azure free tier, choose **Standard_B2** (2 vCPU, 1 GiB) for improved CPU-bound performance; the script adds a 2GB swap by default to help memory-limited instances.
 - If you don't have a domain yet, run the script without `--domain` and test the app via the VM public IP; configure `certbot` later when you add a DNS name.
 - The script installs `faster-whisper` to improve CPU inference speed and creates a `systemd` service (`whisper_app`) and an `nginx` site that proxies to `127.0.0.1:8501`.
+
+  Note: If you see Streamlit warnings in `journalctl` about CORS or XSRF (server.enableCORS being overridden), the systemd unit is configured to start Streamlit with `--server.enableXsrfProtection false` so nginx proxying works correctly. Disabling XSRF reduces protection against cross-site attacks; ensure you expose the app only over HTTPS and via trusted domains.
+
+  Note on transcription backend: The app now prefers `faster-whisper` (faster on CPU, supports quantized compute types) when installed, and falls back to `openai-whisper`'s `whisper.load_model()` if not. Ensure you have either `faster-whisper` or `openai-whisper` installed in the VM's virtual environment. See `requirements.txt`.
+
 - After setup, check the service with `sudo systemctl status whisper_app` and logs with `sudo journalctl -u whisper_app -f`.
 
 ## Continuous Integration & Deployment

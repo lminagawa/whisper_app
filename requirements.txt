@@ -1,5 +1,7 @@
 streamlit
-whisper
+openai-whisper
+faster-whisper
 torch
 ffmpeg-python
-# ffmpegはPythonパッケージではなく、システムにインストールが必要です。
+# ffmpegはPythonパッケージではなく、システムにインストールが必要です.
+# Note: If both 'openai-whisper' and 'faster-whisper' are installed, the app prefers 'faster-whisper' for CPU inference (faster and supports quantized compute types).
