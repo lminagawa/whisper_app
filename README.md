@@ -91,6 +91,8 @@ Notes:
 
   Note: If you see Streamlit warnings in `journalctl` about CORS or XSRF (server.enableCORS being overridden), the systemd unit is configured to start Streamlit with `--server.enableXsrfProtection false` so nginx proxying works correctly. Disabling XSRF reduces protection against cross-site attacks; ensure you expose the app only over HTTPS and via trusted domains.
 
+  Note on transcription backend: The app now prefers `faster-whisper` (faster on CPU, supports quantized compute types) when installed, and falls back to `openai-whisper`'s `whisper.load_model()` if not. Ensure you have either `faster-whisper` or `openai-whisper` installed in the VM's virtual environment. See `requirements.txt`.
+
 - After setup, check the service with `sudo systemctl status whisper_app` and logs with `sudo journalctl -u whisper_app -f`.
 
 ## Continuous Integration & Deployment

@@ -36,10 +36,20 @@ if uploaded_file is not None:
         if st.button("Start Transcription"):
             with st.spinner("Transcribing..."):
                 try:
-                    model = whisper.load_model(model_size)
-                    result = model.transcribe(temp_path)
+                    # Prefer faster-whisper for better CPU performance when available
+                    try:
+                        from faster_whisper import WhisperModel
+                        model = WhisperModel(model_size, device="cpu", compute_type="int8_float16")
+                        segments, info = model.transcribe(temp_path)
+                        text = "".join(seg.text for seg in segments)
+                    except Exception:
+                        # Fallback to OpenAI's whisper if faster-whisper is not installed
+                        model = whisper.load_model(model_size)
+                        result = model.transcribe(temp_path)
+                        text = result.get("text", "")
+
                     st.success("Transcription completed!")
-                    st.text_area("📝 Transcription Result", value=result["text"], height=300)
+                    st.text_area("📝 Transcription Result", value=text, height=300)
                 except Exception as e:
                     st.error(f"Transcription failed: {e}")
             # Delete the temporary file
