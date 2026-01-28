@@ -14,6 +14,21 @@ model_size = st.selectbox(
 )
 st.caption("Larger models are more accurate but may take longer to process.")
 
+# Language selection
+language_option = st.selectbox(
+    "Select language for transcription",
+    ["Auto-detect", "Japanese (日本語)", "English"],
+    index=0
+)
+
+# Map language selection to language code
+language_map = {
+    "Auto-detect": None,
+    "Japanese (日本語)": "ja",
+    "English": "en"
+}
+selected_language = language_map[language_option]
+
 # Audio file upload
 uploaded_file = st.file_uploader(
     "Upload an audio file (mp3, wav, m4a, webm)",
@@ -47,13 +62,19 @@ if uploaded_file is not None:
                         # Use an int8 compute type for CPU to reduce memory usage
                         compute_type = "int8"
                         model = WhisperModel(model_size, device=device, compute_type=compute_type)
-                        segments, info = model.transcribe(temp_path)
+                        if selected_language:
+                            segments, info = model.transcribe(temp_path, language=selected_language)
+                        else:
+                            segments, info = model.transcribe(temp_path)
                         text = "".join(seg.text for seg in segments)
                     except Exception as fw_e:
                         # Fallback to OpenAI's whisper if faster-whisper is not installed or fails
                         try:
                             model = whisper.load_model(model_size)
-                            result = model.transcribe(temp_path)
+                            if selected_language:
+                                result = model.transcribe(temp_path, language=selected_language)
+                            else:
+                                result = model.transcribe(temp_path)
                             text = result.get("text", "")
                         except Exception as w_e:
                             # Raise the original faster-whisper error if present, else whisper error
